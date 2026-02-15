@@ -1,20 +1,12 @@
-/* Write your T-SQL query statement below */
+WITH policy_stats AS (
+    SELECT 
+        tiv_2016,
+        COUNT(*) OVER (PARTITION BY tiv_2015) AS tiv_2015_count,
+        COUNT(*) OVER (PARTITION BY lat, lon) AS location_count
+    FROM insurance
+)
 SELECT 
-    ROUND(SUM(i.tiv_2016), 2) AS tiv_2016
-FROM Insurance i
-JOIN (
-    SELECT tiv_2015
-    FROM Insurance
-    GROUP BY tiv_2015
-    HAVING COUNT(*) > 1
-) t
-ON i.tiv_2015 = t.tiv_2015
-JOIN (
-    SELECT lat, lon
-    FROM Insurance
-    GROUP BY lat, lon
-    HAVING COUNT(*) = 1
-) u
-ON i.lat = u.lat
-AND i.lon = u.lon;
-
+    ROUND(SUM(tiv_2016), 2) AS tiv_2016
+FROM policy_stats
+WHERE tiv_2015_count > 1
+  AND location_count = 1;
